@@ -1,0 +1,24 @@
+services:
+  mongodb:
+    image: mongodb/mongodb-community-server:7.0.12-ubuntu2204
+    container_name: mongo_db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis/redis-stack:7.4.0-v1-x86_64
+    container_name: redis_db
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+      - "8001:8001"  
+
+volumes:
+  mongo_data:
+  redis_data:

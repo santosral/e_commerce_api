@@ -1,1 +1,3 @@
-# e_commerce_api
+# Welcome
+
+Hey, you're running Rails with Mongoid!
