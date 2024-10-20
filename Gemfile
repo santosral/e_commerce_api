@@ -33,9 +33,29 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Managing test data creation [https://github.com/thoughtbot/factory_bot_rails]
+  gem "factory_bot_rails", "~> 6.2"
+
+  # library for generating fake data [https://github.com/faker-ruby/faker]
+  gem "faker", "~> 3.4", ">= 3.4.2"
+
+  # ENV variable manager [https://github.com/bkeepers/dotenv]
+  gem "dotenv", "~> 3.1", ">= 3.1.4"
 end
 
+group :test do
+  # Test framework [https://github.com/rspec]
+  gem "rspec", "~> 3.4"
+  gem "rspec-rails", "~> 7.0", ">= 7.0.1"
+  gem "database_cleaner-mongoid", "~> 2.0", ">= 2.0.1"
 
+  # Provides a collection of RSpec-compatible matchers that help to test Mongoid documents [https://github.com/mongoid/mongoid-rspec]
+  gem "mongoid-rspec"
+
+  # Simple testing of Sidekiq jobs via a collection of matchers and helpers [https://github.com/wspurgin/rspec-sidekiq]
+  gem "rspec-sidekiq", "~> 3.1"
+end
 
 # Use MongoDB for the database, with Mongoid as the ODM
 gem "mongoid", "9.0.2"
