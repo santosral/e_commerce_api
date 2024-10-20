@@ -7,4 +7,13 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+  resources :products do
+    collection do
+      get "import_jobs/:id", to: "products/import_jobs#show", as: "import_job"
+      post "import_jobs", to: "products/import_jobs#create", as: "import_jobs"
+    end
+  end
+
+  resources :categories
+  resources :prices
 end
