@@ -6,5 +6,5 @@ class Category
 
   has_many :products
 
-  validates :name, presence: { message: "Invalid category name" }
+  validates :name, presence: true
 end

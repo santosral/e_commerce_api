@@ -3,8 +3,8 @@ class Product
   include Mongoid::Timestamps
 
   field :name, type: String
-  field :default_price, type: Float
-  field :quantity, type: Integer
+  field :default_price, type: BigDecimal, default: 0
+  field :quantity, type: Integer, default: 0
 
   index({ name: 1, category_id: 1 }, { unique: true })
 
@@ -12,17 +12,7 @@ class Product
   has_many :prices
 
   validates :name, presence: true
-  validate :unique_name_per_category
-
-  def current_price
-    prices.order_by(effective_date: :desc).first
-  end
-
-  private
-
-  def unique_name_per_category
-    if category.present? && Product.where(name: name, category_id: category.id).exists?
-      errors.add(:name, "already exists in the selected category")
-    end
-  end
+  validates :name, uniqueness: { scope: :category_id, message: "must be unique within the category" }
+  validates :default_price, numericality: { greater_than_or_equal_to: 0 }
+  validates :quantity, numericality: { greater_than_or_equal_to: 0 }
 end
