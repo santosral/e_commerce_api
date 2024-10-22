@@ -42,12 +42,13 @@ group :development, :test do
 
   # ENV variable manager [https://github.com/bkeepers/dotenv]
   gem "dotenv", "~> 3.1", ">= 3.1.4"
-end
 
-group :test do
   # Test framework [https://github.com/rspec]
   gem "rspec", "~> 3.4"
   gem "rspec-rails", "~> 7.0", ">= 7.0.1"
+end
+
+group :test do
   gem "database_cleaner-mongoid", "~> 2.0", ">= 2.0.1"
 
   # Provides a collection of RSpec-compatible matchers that help to test Mongoid documents [https://github.com/mongoid/mongoid-rspec]

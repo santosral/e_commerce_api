@@ -22,28 +22,25 @@ module Products
       # CSV.foreach is more memory-efficient as it reads one row at a time, making it suitable for large files.
       CSV.foreach(@file_path, headers: true, header_converters: :downcase, nil_value: "", strip: true).with_index(1) do |row, index|
         next if row.empty?
-        row_hash = row.to_h
+        row_hash = row_hash(row)
 
         # To validate the headers for the first row only.
         headers = validate_headers(headers, row) unless headers.present?
 
         Rails.logger.info "Processing row ##{index}: #{row_hash.inspect}"
-        product_attributes = validate_row(row_hash, index)
+        product = validate_row(row_hash, index)
+        next if product.blank?
 
-        if product_attributes.present?
-          merged_row_info = merged_row_info(row: row_hash, index: index)
+        merged_row_info = merged_row_info(row: row_hash, index: index)
 
-          if block_given?
-            yield merged_row_info, product_attributes, index
-            next
-          end
-
-          @valid_rows << merged_row_info(row: row_hash, index: index)
-        else
+        # Next if block given to avoid storing in valid_rows when running in background job
+        if block_given?
+          yield merged_row_info, product.as_json, index
           next
         end
 
-        @transformed_rows << product_attributes
+        @valid_rows << merged_row_info
+        @transformed_rows << product
       end
 
       successful_message = "CSV parsing completed successfully for file: #{@file_path}"
@@ -57,8 +54,41 @@ module Products
 
     private
 
+    def row_hash(row)
+      row.to_h.symbolize_keys
+    end
+
     def merged_row_info(row:, index:)
-      { "row" => index }.merge!(row)
+      hash = { row: index }.merge!(row)
+      hash.as_json
+    end
+
+    def build_product(row)
+      current_time = Time.zone.now
+      category = Category.find_or_initialize_by(name: row[:category])
+
+      if category.new_record?
+        category.created_at = current_time
+        category.updated_at = current_time
+        category.save!
+      end
+
+      product = Product.new(
+        name: row[:name],
+        category: category,
+        quantity: row[:qty].to_i,
+        created_at: current_time,
+        updated_at: current_time
+      )
+      product.prices.build(
+        pricing_strategy: "default",
+        amount: BigDecimal(row[:default_price]),
+        valid_from: current_time,
+        created_at: current_time,
+        updated_at: current_time
+      )
+
+      product
     end
 
     def validate_headers(headers, first_row)
@@ -74,22 +104,13 @@ module Products
       first_row_headers
     end
 
-    def validate_row(row_hash, index)
-      category = Category.find_or_create_by(name: row_hash["category"])
-
-      product_attributes = {
-        name: row_hash["name"],
-        category_id: category.id.to_s,
-        default_price: row_hash["default_price"].to_f,
-        quantity: row_hash["qty"]
-      }
-
-      product = Product.new(product_attributes)
+    def validate_row(row, index)
+      product = build_product(row)
 
       if product.valid?
-        Rails.logger.info "Valid row ##{index}: #{product_attributes.inspect}"
+        Rails.logger.info "Valid row ##{index}: #{product.inspect}"
 
-        product_attributes.as_json
+        product
       else
         @invalid_rows << merged_row_info(row: product.errors.messages, index: index)
         error_message = "Invalid row: #{index}"

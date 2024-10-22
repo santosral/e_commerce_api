@@ -1,8 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe Product, type: :model do
-  let(:category) { create(:category) }
-
   it { is_expected.to be_mongoid_document }
   it { is_expected.to have_timestamps }
 
@@ -12,7 +10,7 @@ RSpec.describe Product, type: :model do
 
   describe 'fields' do
     it { is_expected.to have_field(:name).of_type(String) }
-    it { is_expected.to have_field(:default_price).of_type(BigDecimal).with_default_value_of(0) }
+    it { is_expected.to have_field(:default_price).of_type(BigDecimal).with_default_value_of(0.0) }
     it { is_expected.to have_field(:quantity).of_type(Integer).with_default_value_of(0) }
   end
 

@@ -9,7 +9,7 @@ module Products
     end
 
     def call
-      Rails.logger.info "Starting import of #{rows.size} records."
+      Rails.logger.info "Starting import of #{@rows.size} records."
 
       result = Product.collection.insert_many(@rows)
 
