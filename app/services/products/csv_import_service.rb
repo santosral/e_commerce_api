@@ -13,7 +13,7 @@ module Products
 
       result = Product.collection.insert_many(@rows)
 
-       Rails.logger.info "Successfully imported #{result.inserted_count} records."
+      Rails.logger.info "Successfully imported #{result.inserted_count} records."
 
       {
         success: true,

@@ -1,5 +1,5 @@
 class CartItemsController < ApplicationController
-  before_action :set_cart, only: %i[ index create ]
+  before_action :set_cart, only: %i[ index create update ]
   before_action :set_cart_item, only: %i[ show update destroy ]
 
   # GET /cart/:cart_id/cart_items
@@ -8,8 +8,8 @@ class CartItemsController < ApplicationController
     @cart_items = @cart.cart_items
   end
 
-  # GET /cart_items/1
-  # GET /cart_items/1.json
+  # GET /cart/:cart_id/cart_items/1
+  # GET /cart/:cart_id/cart_items/1.json
   def show
   end
 
@@ -18,27 +18,27 @@ class CartItemsController < ApplicationController
   def create
     @cart_item = @cart.cart_items.build(cart_item_params)
 
-    if @cart_item.save
+    if @cart_item.add_to_cart
       render :show, status: :created
     else
       render json: @cart_item.errors, status: :unprocessable_entity
     end
   end
 
-  # PATCH/PUT /cart_items/1
-  # PATCH/PUT /cart_items/1.json
+  # PATCH/PUT /cart/:cart_id/cart_items/1
+  # PATCH/PUT /cart/:cart_id/cart_items/1.json
   def update
-    if @cart_item.update(cart_item_params)
-      render :show, status: :ok, location: @cart_item
+    if @cart_item.update_cart(cart_item_params)
+      render :show, status: :ok
     else
       render json: @cart_item.errors, status: :unprocessable_entity
     end
   end
 
-  # DELETE /cart_items/1
-  # DELETE /cart_items/1.json
+  # DELETE /cart/:cart_id/cart_items/1
+  # DELETE /cart/:cart_id/cart_items/1.json
   def destroy
-    if @cart_item.destroy
+    if @cart_item.remove_from_cart
       head :no_content
     else
       render json: { error: "Unable to delete cart item" }, status: :unprocessable_entity

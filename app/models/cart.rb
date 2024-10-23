@@ -6,12 +6,23 @@ class Cart
 
   has_many :cart_items
 
-  def update_total_price(exclude: nil)
-    return if cart_items.blank?
+  def update_total_price
+    if cart_items.present?
+      self.total_price = cart_items.sum do |item|
+        if item.captured_price_id.present?
+          captured_price = item.product.price_adjustments.find(item.captured_price_id)
+          amount = captured_price.amount
+        else
+          amount = item.product.base_price
+        end
 
-    self.total_price = cart_items.where(id: { "$ne" => exclude&.id }).sum do |item|
-      item.quantity * item.price.amount
+        price = amount
+        item.quantity * price
+      end
+    else
+      self.total_price = 0.0
     end
-    save
+
+    save!
   end
 end

@@ -64,28 +64,12 @@ module Products
     end
 
     def build_product(row)
-      current_time = Time.zone.now
-      category = Category.find_or_initialize_by(name: row[:category])
-
-      if category.new_record?
-        category.created_at = current_time
-        category.updated_at = current_time
-        category.save!
-      end
-
+      category = Category.find_or_create_by(name: row[:category])
       product = Product.new(
         name: row[:name],
         category: category,
-        quantity: row[:qty].to_i,
-        created_at: current_time,
-        updated_at: current_time
-      )
-      product.prices.build(
-        pricing_strategy: "default",
-        amount: BigDecimal(row[:default_price]),
-        valid_from: current_time,
-        created_at: current_time,
-        updated_at: current_time
+        base_price: row[:default_price],
+        quantity: row[:qty].to_i
       )
 
       product

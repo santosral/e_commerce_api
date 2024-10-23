@@ -15,10 +15,11 @@ class OrdersController < ApplicationController
   # POST /orders
   # POST /orders.json
   def create
-    @order = Order.new(order_params)
+    cart = Cart.find(order_params[:cart_id])
+    @order = Order.new
 
-    if @order.save
-      render :show, status: :created, location: @order
+    if @order.create_from_cart(cart)
+      render :show, status: :created
     else
       render json: @order.errors, status: :unprocessable_entity
     end
@@ -48,6 +49,6 @@ class OrdersController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def order_params
-      params.require(:order).permit(:user_id, :total_price)
+      params.require(:order).permit(:cart_id)
     end
 end

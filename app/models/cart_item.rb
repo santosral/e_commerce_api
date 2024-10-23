@@ -10,26 +10,44 @@ class CartItem
 
   validates :quantity, presence: true, numericality: { greater_than: 0 }
   validates :product_id, uniqueness: { scope: :cart_id, message: "has already been added to this cart" }
+  validate :captured_price_should_exist_in_product, on: :create
 
-  after_create :increment_trend_tracker
-  after_save :update_cart_total
-  after_destroy :update_cart_total_after_destroy
+  def add_to_cart
+    Cart.transaction do
+      save!
+      cart.update_total_price
+      Products::TrackCartAdditionsJob.perform_async(product.id.to_s)
+    end
+    true
+  rescue Mongoid::Errors::Validations
+    false
+  end
 
-  def price
-    product.prices.find(captured_price_id) || product.current_price
+  def remove_from_cart
+    Cart.transaction do
+      destroy!
+      cart.update_total_price
+    end
+  end
+
+  def update_cart(cart_item_params)
+    Cart.transaction do
+      self.assign_attributes(cart_item_params)
+      if save!
+        cart.update_total_price
+      end
+    end
+    true
+  rescue Mongoid::Errors::Validations
+    false
   end
 
   private
+    def captured_price_should_exist_in_product
+      return false if product.current_price.blank?
 
-  def update_cart_total
-    cart.update_total_price
-  end
-
-  def update_cart_total_after_destroy
-    cart.update_total_price(exclude: self)
-  end
-
-  def increment_trend_tracker
-    product.trend_tracker.increment_add_to_cart
-  end
+      unless product.price_adjustments.exists?(captured_price_id)
+        errors.add(:captured_price_id, :invalid_price, message: "Price does not exist")
+      end
+    end
 end

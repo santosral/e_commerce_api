@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-  resources :trend_trackers
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -18,10 +17,12 @@ Rails.application.routes.draw do
   resources :categories
   resources :prices
   resources :price_histories
-  resources :order_items
-  resources :orders
 
-  resources :carts, shallow: true do
+  resources :carts do
     resources :cart_items
+  end
+
+  resources :orders do
+    resources :order_items
   end
 end

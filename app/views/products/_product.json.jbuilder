@@ -1,6 +1,7 @@
-json.extract! product, :id, :name, :quantity, :created_at, :updated_at
+json.extract! product, :id, :name, :quantity
 json.url product_url(product, format: :json)
-
-json.price product.prices do |price|
-  json.partial! "prices/price", price: price
+json.price do
+  price = product.current_price&.amount || product.base_price
+  json.id nil
+  json.amount price
 end
