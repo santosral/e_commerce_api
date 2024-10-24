@@ -10,7 +10,11 @@ class CartItem
 
   validates :quantity, presence: true, numericality: { greater_than: 0 }
   validates :product_id, uniqueness: { scope: :cart_id, message: "has already been added to this cart" }
-  validate :captured_price_should_exist_in_product, on: :create
+
+  with_options on: :create do
+    validate :captured_price_should_exist_in_product
+    validate :quantity_must_not_exceed_product_stock
+  end
 
   def add_to_cart
     Cart.transaction do
@@ -48,6 +52,12 @@ class CartItem
 
       unless product.price_adjustments.exists?(captured_price_id)
         errors.add(:captured_price_id, :invalid_price, message: "Price does not exist")
+      end
+    end
+
+    def quantity_must_not_exceed_product_stock
+      if quantity > product.quantity
+        errors.add(:quantity, "exceeds available stock")
       end
     end
 end

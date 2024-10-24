@@ -9,4 +9,13 @@ class OrderItem
   belongs_to :product
 
   validates :quantity, presence: true, numericality: { greater_than: 0 }
+  validate :quantity_must_not_exceed_product_stock
+
+  private
+
+  def quantity_must_not_exceed_product_stock
+    if quantity > product.quantity
+      errors.add(:quantity, "exceeds available stock")
+    end
+  end
 end
