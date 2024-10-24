@@ -65,7 +65,7 @@ gem "mongoid", "9.0.2"
 gem "railsmdb", "1.0.0.alpha3"
 
 # For background job processing [https://github.com/sidekiq/sidekiq]
-gem "sidekiq", "~> 7.1", ">= 7.1.2"
+gem "sidekiq", "~> 7.3"
 
 # A library that simplifies making HTTP requests
 gem "httparty", "~> 0.22.0"
