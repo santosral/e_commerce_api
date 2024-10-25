@@ -3,7 +3,10 @@ FactoryBot.define do
     name { Faker::Commerce.product_name }
     base_price { Faker::Commerce.price(range: 1..100.0) }
     quantity { Faker::Number.between(from: 1, to: 100) }
-    association :category
+
+    after(:build) do |product|
+      product.category = create(:category)
+    end
 
     trait :with_price_adjustments do
       transient do
