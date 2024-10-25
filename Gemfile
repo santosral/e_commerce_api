@@ -56,6 +56,12 @@ group :test do
 
   # Simple testing of Sidekiq jobs via a collection of matchers and helpers [https://github.com/wspurgin/rspec-sidekiq]
   gem "rspec-sidekiq", "~> 3.1"
+
+  # Addon for displaying CodeLens for RSpec tests
+  gem "ruby-lsp-rspec", require: false
+
+  # Provides time travel and freezing capabilities [https://github.com/travisjeffery/timecop]
+  gem "timecop", "~> 0.8.0"
 end
 
 # Use MongoDB for the database, with Mongoid as the ODM

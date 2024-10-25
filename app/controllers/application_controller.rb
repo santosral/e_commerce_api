@@ -1,7 +1,7 @@
 class ApplicationController < ActionController::API
+  rescue_from StandardError, with: :handle_internal_error
   rescue_from Mongoid::Errors::DocumentNotFound, with: :not_found
   rescue_from ActionController::ParameterMissing, with: :handle_missing_parameter
-  # rescue_from StandardError, with: :handle_internal_error
 
   private
 

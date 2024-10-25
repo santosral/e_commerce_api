@@ -12,6 +12,8 @@ Rails.application.routes.draw do
       get "import_jobs/:id", to: "products/import_jobs#show", as: "import_job"
       post "import_jobs", to: "products/import_jobs#create", as: "import_jobs"
     end
+
+    get "metrics", to: "products/metrics#index"
   end
 
   resources :categories

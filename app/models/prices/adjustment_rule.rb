@@ -11,8 +11,6 @@ module Prices
     field :order_threshold, type: Integer
     field :factor, type: Float
     field :time_frame, type: String
-    field :last_adjusted_period, type: String
-    field :last_adjusted_date, type: DateTime
 
     index({ name: 1, products: 1 }, { unique: true })
     index({ strategy_type: 1, products: 1 }, { unique: true })
@@ -20,7 +18,7 @@ module Prices
     has_and_belongs_to_many :product
 
     validates :name, presence: true
-    validates :name, uniqueness: { scope: :products, message: "must be unique per product" }
+    validates :name, uniqueness: { scope: :product, message: "must be unique per product" }
     validates :strategy_type, inclusion: { in: STRATEGY_TYPES, message: "must be one of #{STRATEGY_TYPES.join(', ')}" }
     validates :strategy_type, uniqueness: { scope: :products, message: "must be unique per product" }
     validates :add_to_cart_threshold, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
@@ -29,7 +27,9 @@ module Prices
     validates :time_frame, inclusion: { in: Metric::TIME_FRAMES, message: "must be either #{Metric::TIME_FRAMES.join(', ')}" }
 
     def can_apply_adjustment?(current_period)
-      last_adjusted_period != current_period
+      rule_period = Time.now.utc.strftime(Metric::TIME_FRAME_FORMATS[time_frame])
+
+      rule_period == current_period
     end
   end
 end

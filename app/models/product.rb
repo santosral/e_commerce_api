@@ -2,6 +2,8 @@ class Product
   include Mongoid::Document
   include Mongoid::Timestamps
 
+  PriceResult = Struct.new(:id, :amount)
+
   field :name, type: String
   field :base_price, type: BigDecimal
   field :quantity, type: Integer, default: 0
@@ -9,8 +11,8 @@ class Product
   index({ name: 1, category_id: 1 }, { unique: true })
 
   belongs_to :category
-  has_many :order_items
   has_many :cart_items
+  has_many :order_items
   has_many :metrics
   has_and_belongs_to_many :price_adjustment_rules, class_name: "Prices::AdjustmentRule"
 
@@ -18,15 +20,21 @@ class Product
 
   validates :name, presence: true
   validates :name, uniqueness: { scope: :category_id, message: "must be unique within the category" }
-  validates :base_price, numericality: { greater_than: 0 }
   validates :quantity, numericality: { greater_than_or_equal_to: 0, only_integer: true }
+  validate :base_price_should_be_greater_than_zero
+  validate :sufficient_quantity_available
 
-  def current_price
+  def current_price(price_id = nil)
+    if price_id.present?
+      price = price_adjustments.where(_id: price_id).first
+      return PriceResult.new(id: price.id, amount: price.amount) if price.present?
+    end
+
     current_time = DateTime.now.utc
-    price = price_adjustments.where(effective_date: { "$lte" => current_time }).order_by(effective_date: -1)
-    return if price.blank?
+    price = price_adjustments.where(effective_date: { "$lte" => current_time }).order_by(effective_date: -1).first
+    return PriceResult.new(id: price.id, amount: price.amount) if price.present?
 
-    price.first
+    PriceResult.new(id: nil, amount: base_price)
   end
 
   def increase_cart_metrics
@@ -34,7 +42,7 @@ class Product
   end
 
   def increase_order_metrics
-    increment_metrics("add_to_cart_count")
+    increment_metrics("order_count")
   end
 
   def apply_price_adjustment_rules_by_demand
@@ -49,10 +57,10 @@ class Product
     period = current_period(rule.time_frame)
     return unless rule.can_apply_adjustment?(period)
 
-    metric = metrics.find_by(period: period)
+    metric = metrics.where(period: period).first
     return if metric.blank?
 
-    amount = current_price&.amount || base_price
+    amount = current_price.amount
     add_to_cart_count = metric.get_metric("add_to_cart_count")
     calculated_amount = calculate_adjusted_price(amount, rule, add_to_cart_count)
     return if calculated_amount.nil?
@@ -63,20 +71,27 @@ class Product
       effective_date: DateTime.now.utc
     )
     price_adjustments << price
-    rule.last_adjusted_period(last_adjusted_period: period, last_adjusted_date: DateTime.now.utc)
     save!
   end
 
   def reduce_quantity(quantity_to_deduct)
-    if quantity_to_deduct <= quantity
-      self.quantity -= quantity_to_deduct
-      save!
-    else
-      raise ArgumentError, "Cannot deduct more than available quantity"
-    end
+    self.quantity -= quantity_to_deduct
+    save!
   end
 
   private
+    def base_price_should_be_greater_than_zero
+      if BigDecimal(base_price) <= BigDecimal("0.00")
+        errors.add(:base_price, "should be greater than 0.00")
+      end
+    end
+
+    def sufficient_quantity_available
+      if quantity < 0
+        errors.add(:quantity, "cannot be negative")
+      end
+    end
+
     def current_period(time_frame)
       format = Metric::TIME_FRAME_FORMATS[time_frame].presence || nil
       return if format.nil?

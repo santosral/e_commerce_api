@@ -25,13 +25,13 @@ class Order
           updated_at: DateTime.now.utc
         )
 
-        if order_item.valid?
+        if order_item.valid?(:create_from_cart)
           order_items.build(order_item.attributes)
 
           order_item.save!
           order_item.product.reduce_quantity(order_item.quantity)
         else
-          errors.add(:base, :invalid_order_items, messages: order_items.errors.full_messages.first)
+          errors.add(:order_items, message: order_item.errors.full_messages.first)
           return false
         end
       end

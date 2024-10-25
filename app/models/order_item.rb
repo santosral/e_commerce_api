@@ -9,7 +9,7 @@ class OrderItem
   belongs_to :product
 
   validates :quantity, presence: true, numericality: { greater_than: 0 }
-  validate :quantity_must_not_exceed_product_stock
+  validate :quantity_must_not_exceed_product_stock, on: :create_from_cart
 
   private
 

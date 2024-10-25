@@ -48,7 +48,7 @@ class CartItem
 
   private
     def captured_price_should_exist_in_product
-      return false if product.current_price.blank?
+      return true if product.current_price.id.nil? && captured_price_id.blank?
 
       unless product.price_adjustments.exists?(captured_price_id)
         errors.add(:captured_price_id, :invalid_price, message: "Price does not exist")

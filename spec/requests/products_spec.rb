@@ -13,115 +13,100 @@ require 'rails_helper'
 # sticking to rails and rspec-rails APIs to keep things simple and stable.
 
 RSpec.describe "/products", type: :request do
-  # This should return the minimal set of attributes required to create a valid
-  # Product. As you add validations to Product, be sure to
-  # adjust the attributes here as well.
-  let(:valid_attributes) {
-    skip("Add a hash of attributes valid for your model")
-  }
-
-  let(:invalid_attributes) {
-    skip("Add a hash of attributes invalid for your model")
-  }
-
   # This should return the minimal set of values that should be in the headers
   # in order to pass any filters (e.g. authentication) defined in
   # ProductsController, or in your router and rack
   # middleware. Be sure to keep this updated too.
   let(:valid_headers) {
-    {}
+    { 'Accept' => 'application/json' }
   }
 
-  describe "GET /index" do
-    it "renders a successful response" do
-      Product.create! valid_attributes
-      get products_url, headers: valid_headers, as: :json
-      expect(response).to be_successful
-    end
-  end
+  let!(:product) { create(:product) }
 
-  describe "GET /show" do
-    it "renders a successful response" do
-      product = Product.create! valid_attributes
-      get product_url(product), as: :json
-      expect(response).to be_successful
-    end
-  end
+  describe "GET /products" do
+    it "returns a successful JSON response with a list of products" do
+      get products_url, headers: valid_headers
 
-  describe "POST /create" do
-    context "with valid parameters" do
-      it "creates a new Product" do
-        expect {
-          post products_url,
-               params: { product: valid_attributes }, headers: valid_headers, as: :json
-        }.to change(Product, :count).by(1)
+      expect(response).to have_http_status(:success)
+      expect(response.content_type).to include('application/json')
+      expect(json_response).to be_an(Array)
+      expect(json_response.first['id']).to eq(product.id.to_s)
+      expect(json_response.first['name']).to eq(product.name)
+    end
+
+    context 'when no products exist' do
+      before do
+        Product.destroy_all
+        get products_url, headers: valid_headers
       end
 
-      it "renders a JSON response with the new product" do
-        post products_url,
-             params: { product: valid_attributes }, headers: valid_headers, as: :json
-        expect(response).to have_http_status(:created)
-        expect(response.content_type).to match(a_string_including("application/json"))
+      it 'returns an empty array' do
+        expect(response).to have_http_status(:success)
+        expect(json_response).to eq([])
       end
     end
 
-    context "with invalid parameters" do
-      it "does not create a new Product" do
-        expect {
-          post products_url,
-               params: { product: invalid_attributes }, as: :json
-        }.to change(Product, :count).by(0)
+    context 'when a product has price adjustment' do
+      let(:product_with_price_adjustment) do
+        create(:product, :with_price_adjustments, price_adjustments_count: 1,
+          base_price: BigDecimal("800.0"), amount: BigDecimal("900.0"))
       end
 
-      it "renders a JSON response with errors for the new product" do
-        post products_url,
-             params: { product: invalid_attributes }, headers: valid_headers, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to match(a_string_including("application/json"))
-      end
-    end
-  end
+      before { product_with_price_adjustment }
 
-  describe "PATCH /update" do
-    context "with valid parameters" do
-      let(:new_attributes) {
-        skip("Add a hash of attributes valid for your model")
-      }
+      it 'returns a successful JSON response with price adjustment' do
+        get products_url, headers: valid_headers
+        expect(response).to have_http_status(:success)
+        expect(response.content_type).to include('application/json')
 
-      it "updates the requested product" do
-        product = Product.create! valid_attributes
-        patch product_url(product),
-              params: { product: new_attributes }, headers: valid_headers, as: :json
-        product.reload
-        skip("Add assertions for updated state")
-      end
+        expect(json_response).to be_an(Array)
 
-      it "renders a JSON response with the product" do
-        product = Product.create! valid_attributes
-        patch product_url(product),
-              params: { product: new_attributes }, headers: valid_headers, as: :json
-        expect(response).to have_http_status(:ok)
-        expect(response.content_type).to match(a_string_including("application/json"))
-      end
-    end
+        expect(json_response.first['id']).to eq(product.id.to_s)
+        expect(json_response.first['name']).to eq(product.name)
+        expect(json_response.first['id']).to eq(product.id.to_s)
 
-    context "with invalid parameters" do
-      it "renders a JSON response with errors for the product" do
-        product = Product.create! valid_attributes
-        patch product_url(product),
-              params: { product: invalid_attributes }, headers: valid_headers, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to match(a_string_including("application/json"))
+        expect(json_response.last['price']['id']).to eq(product_with_price_adjustment.price_adjustments.first.id.to_s)
+        expect(json_response.last['price']['amount']).to eq("900.0")
       end
     end
   end
 
-  describe "DELETE /destroy" do
-    it "destroys the requested product" do
-      product = Product.create! valid_attributes
-      expect {
-        delete product_url(product), headers: valid_headers, as: :json
-      }.to change(Product, :count).by(-1)
+  describe 'GET /products/:id' do
+    context 'when the product exists' do
+      it 'returns a successful JSON response' do
+        get product_url(product), headers: valid_headers
+        expect(response).to have_http_status(:success)
+        expect(response.content_type).to include('application/json')
+
+        expect(json_response['id']).to eq(product.id.to_s)
+      end
+
+      context 'when product have price adjustment' do
+        let(:product) do
+          create(:product, :with_price_adjustments, price_adjustments_count: 1,
+            base_price: BigDecimal("800.0"), amount: BigDecimal("900.0"))
+        end
+
+        it 'returns a successful JSON response with price adjustment' do
+          get product_url(product), headers: valid_headers
+          expect(response).to have_http_status(:success)
+          expect(response.content_type).to include('application/json')
+
+          expect(json_response['id']).to eq(product.id.to_s)
+          expect(json_response['price']).to be_a(Hash)
+          expect(json_response['price']['id']).to eq(product.price_adjustments.first.id.to_s)
+          expect(json_response['price']['amount']).to eq("900.0")
+        end
+      end
+    end
+
+    context 'when the product does not exist' do
+      it 'returns a not found JSON error' do
+        get product_url(id: 'invalid'), headers: valid_headers
+        expect(response).to have_http_status(:not_found)
+
+        expect(json_response).to eq({ 'error' => 'Resource not found' })
+      end
     end
   end
 end

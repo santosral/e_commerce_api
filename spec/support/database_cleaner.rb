@@ -1,4 +1,3 @@
-# spec/support/database_cleaner.rb
 RSpec.configure do |config|
   config.before(:suite) do
     DatabaseCleaner[:mongoid].clean_with(:deletion)
