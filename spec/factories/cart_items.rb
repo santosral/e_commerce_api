@@ -1,14 +1,8 @@
-# spec/factories/cart_items.rb
 FactoryBot.define do
   factory :cart_item do
     quantity { 1 }
     captured_price_id { nil }
-
     association :cart
-
-    after(:build) do |cart_item|
-      cart_item.product = create(:product)
-    end
 
     trait :with_product do
       transient do

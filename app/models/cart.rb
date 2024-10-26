@@ -10,14 +10,13 @@ class Cart
     if cart_items.present?
       self.total_price = cart_items.sum do |item|
         if item.captured_price_id.present?
-          captured_price = item.product.price_adjustments.find(item.captured_price_id)
-          amount = captured_price.amount
+          captured_price = item.product.price_adjustments.where(_id: item.captured_price_id).first
+          amount = captured_price&.amount || 0.0
         else
-          amount = item.product.base_price
+          amount = item.product.current_price.amount
         end
 
-        price = amount
-        item.quantity * price
+        item.quantity * amount
       end
     else
       self.total_price = 0.0

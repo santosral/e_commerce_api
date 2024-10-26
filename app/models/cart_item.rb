@@ -5,14 +5,21 @@ class CartItem
   field :quantity, type: Integer, default: 1
   field :captured_price_id, type: BSON::ObjectId
 
+  index({ cart_id: 1 })
+  index({ product_id: 1, cart_id: 1 }, unique: true)
+
+
   belongs_to :cart
   belongs_to :product
 
-  validates :quantity, presence: true, numericality: { greater_than: 0 }
-  validates :product_id, uniqueness: { scope: :cart_id, message: "has already been added to this cart" }
+  validates :cart, presence: true
+  validates :product, presence: true
+  validates :quantity, presence: true
+  validates :quantity, numericality: { greater_than: 0, only_integer: true }
+  validates :product_id, uniqueness: { scope: :cart_id, message: "has already been added to this cart" }, on: :create
 
-  with_options on: :create do
-    validate :captured_price_should_exist_in_product
+  with_options on: :create, if: -> { product.present? } do
+    validate :captured_price_should_match_product_current_price
     validate :quantity_must_not_exceed_product_stock
   end
 
@@ -21,9 +28,13 @@ class CartItem
       save!
       cart.update_total_price
       Products::TrackCartAdditionsJob.perform_async(product.id.to_s)
+      Rails.logger.info "Added product #{product.id} to cart #{cart.id}"
     end
+
     true
   rescue Mongoid::Errors::Validations
+    Rails.logger.info "Validation errors: #{errors.messages}"
+
     false
   end
 
@@ -31,27 +42,35 @@ class CartItem
     Cart.transaction do
       destroy!
       cart.update_total_price
+      Rails.logger.info "Removed product #{product.id} from cart #{cart.id}"
     end
+
+    true
+  rescue StandardError => e
+    Rails.logger.error "Failed to remove product #{product.id} from cart #{cart.id}: #{e.message}"
+
+    false
   end
 
   def update_cart(cart_item_params)
     Cart.transaction do
-      self.assign_attributes(cart_item_params)
-      if save!
-        cart.update_total_price
-      end
+      assign_attributes(cart_item_params)
+      save!
+      cart.update_total_price
+      Rails.logger.info "Updated product #{product.id} in cart #{cart.id}."
     end
+
     true
   rescue Mongoid::Errors::Validations
+    Rails.logger.info "Failed to update product #{product.id} in cart #{cart.id}: #{errors.messages}"
+
     false
   end
 
   private
-    def captured_price_should_exist_in_product
-      return true if product.current_price.id.nil? && captured_price_id.blank?
-
-      unless product.price_adjustments.exists?(captured_price_id)
-        errors.add(:captured_price_id, :invalid_price, message: "Price does not exist")
+    def captured_price_should_match_product_current_price
+      if product.current_price.id != captured_price_id
+        errors.add(:captured_price_id, :invalid_price, message: "Invalid price")
       end
     end
 

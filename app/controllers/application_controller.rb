@@ -5,8 +5,9 @@ class ApplicationController < ActionController::API
 
   private
 
-  def not_found
-    render json: { error: "Resource not found" }, status: :not_found
+  def not_found(exception)
+    Rails.logger.error("Document not found: #{exception.message}")
+    render json: { error: exception.message }, status: :not_found
   end
 
   def handle_missing_parameter(exception)
