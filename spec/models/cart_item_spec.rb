@@ -94,47 +94,6 @@ RSpec.describe CartItem, type: :model do
     end
   end
 
-  describe '#add_to_cart' do
-    it 'saves the cart item and updates the cart total' do
-      expect(cart_item.add_to_cart).to be true
-      expect(cart_item.cart.total_price).to eq(cart_item.quantity * cart_item.product.current_price.amount)
-    end
-
-    context 'when cart item is invalid' do
-      let(:cart_item) { build(:cart_item, quantity: 0) }
-
-      it 'returns false' do
-        expect(cart_item.add_to_cart).to be false
-        expect(cart_item.errors.messages).to be_present
-      end
-    end
-
-    context 'when same product was added to the cart' do
-      let(:product) { create(:product) }
-      let(:cart_item) { create(:cart_item, product: product) }
-      let(:duplicate_cart_item) { build(:cart_item, cart: cart_item.cart, product: product) }
-
-      it 'do not allow adding the same product to the cart' do
-        expect(duplicate_cart_item.add_to_cart).to be false
-        expect(duplicate_cart_item.errors[:product_id]).to include("has already been added to this cart")
-      end
-    end
-
-    it 'logs the addition of the product' do
-      allow(Rails.logger).to receive(:info)
-      cart_item.add_to_cart
-      expect(Rails.logger).to have_received(:info).with("Added product #{cart_item.product.id} to cart #{cart_item.cart.id}")
-    end
-
-    it 'handles transaction failures gracefully' do
-      allow(Rails.logger).to receive(:info)
-      allow(cart_item).to receive(:save!).and_raise(Mongoid::Errors::Validations.new(cart_item))
-
-      expect(cart_item.add_to_cart).to be false
-      expect(Rails.logger).to have_received(:info).with("Validation errors: #{cart_item.errors.messages}")
-    end
-  end
-
   describe '#remove_from_cart' do
     let(:cart) { create(:cart) }
     let(:cart_item) { create(:cart_item, :with_product, cart: cart) }

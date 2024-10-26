@@ -1,5 +1,5 @@
 class CartItemsController < ApplicationController
-  before_action :set_cart, only: %i[ index create update ]
+  before_action :set_cart
   before_action :set_cart_item, only: %i[ show update destroy ]
 
   # GET /cart/:cart_id/cart_items
@@ -16,12 +16,12 @@ class CartItemsController < ApplicationController
   # POST /cart/:cart_id/cart_items
   # POST /cart/:cart_id/cart_items.json
   def create
-    @cart_item = @cart.cart_items.build(cart_item_params)
+    @cart_item = @cart.add_cart_item(cart_item_params)
 
-    if @cart_item.add_to_cart
+    if @cart_item
       render :show, status: :created
     else
-      render json: @cart_item.errors, status: :unprocessable_entity
+      render json: { errors: @cart.errors }, status: :unprocessable_entity
     end
   end
 
@@ -31,7 +31,7 @@ class CartItemsController < ApplicationController
     if @cart_item.update_cart(cart_item_params)
       render :show, status: :ok
     else
-      render json: @cart_item.errors, status: :unprocessable_entity
+      render json: { errors: @cart.errors }, status: :unprocessable_entity
     end
   end
 
@@ -57,6 +57,18 @@ class CartItemsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def cart_item_params
+      if action_name == "create"
+        create_cart_item_params
+      else
+        update_cart_item_params
+      end
+    end
+
+    def create_cart_item_params
       params.require(:cart_item).permit(:product_id, :quantity, :captured_price_id)
+    end
+
+    def update_cart_item_params
+      params.require(:cart_item).permit(:quantity)
     end
 end

@@ -6,6 +6,29 @@ class Cart
 
   has_many :cart_items
 
+  def add_cart_item(cart_item_params)
+    cart_item = cart_items.build(cart_item_params)
+
+    Cart.transaction do
+      if cart_item.valid?
+        cart_item.save!
+      else
+        errors.add(:cart_item, cart_item.errors.messages)
+        raise Mongoid::Errors::Validations.new(cart_item)
+      end
+
+      update_total_price
+      Products::TrackCartAdditionsJob.perform_async(cart_item.product.id.to_s)
+      Rails.logger.info "Added product #{cart_item.product.id} to cart #{id}"
+    end
+
+    cart_item
+  rescue Mongoid::Errors::Validations
+    Rails.logger.info "Validation errors: #{errors.messages}"
+
+    false
+  end
+
   def update_total_price
     if cart_items.present?
       self.total_price = cart_items.sum do |item|

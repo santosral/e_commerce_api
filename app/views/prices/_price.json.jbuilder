@@ -1,1 +1,2 @@
-json.extract! price, :id, :amount
+json.extract! price, :id
+json.amount price.amount.formatted_amount

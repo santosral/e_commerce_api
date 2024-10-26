@@ -13,15 +13,20 @@ require 'rails_helper'
 # sticking to rails and rspec-rails APIs to keep things simple and stable.
 
 RSpec.describe "/cart_items", type: :request do
+  let(:cart) { create(:cart) }
+  let(:cart_item_product) { create(:product) }
+  let(:cart_item) { create(:cart_item, cart: cart, product: cart_item_product) }
+  let(:new_product) { create(:product) }
+
   # This should return the minimal set of attributes required to create a valid
   # CartItem. As you add validations to CartItem, be sure to
   # adjust the attributes here as well.
   let(:valid_attributes) {
-    skip("Add a hash of attributes valid for your model")
+    { cart_item: { product_id: new_product.id.to_s, quantity: 1  } }
   }
 
   let(:invalid_attributes) {
-    skip("Add a hash of attributes invalid for your model")
+    { cart_item: { quantity: nil } }
   }
 
   # This should return the minimal set of values that should be in the headers
@@ -29,99 +34,81 @@ RSpec.describe "/cart_items", type: :request do
   # CartItemsController, or in your router and rack
   # middleware. Be sure to keep this updated too.
   let(:valid_headers) {
-    {}
+    { 'Accept' => 'application/json' }
   }
 
-  describe "GET /index" do
-    it "renders a successful response" do
-      CartItem.create! valid_attributes
-      get cart_items_url, headers: valid_headers, as: :json
-      expect(response).to be_successful
+  describe "GET /carts/:cart_id/cart_items" do
+    it "returns a list of cart items" do
+      get cart_cart_items_url(cart_item.cart), headers: valid_headers, as: :json
+
+      expect(response).to have_http_status(:success)
+      expect(response).to match_response_schema('cart_items')
     end
   end
 
-  describe "GET /show" do
-    it "renders a successful response" do
-      cart_item = CartItem.create! valid_attributes
-      get cart_item_url(cart_item), as: :json
-      expect(response).to be_successful
+  describe "GET /carts/:cart_id/cart_items/:id" do
+    it "returns a specific cart item" do
+      get cart_cart_item_url(cart_item.cart, cart_item), headers: valid_headers, as: :json
+
+      expect(response).to have_http_status(:success)
+      expect(response).to match_response_schema("cart_item")
     end
   end
 
-  describe "POST /create" do
+  describe "POST /carts/:cart_id/cart_items" do
     context "with valid parameters" do
-      it "creates a new CartItem" do
+      it "creates a new cart item" do
         expect {
-          post cart_items_url,
-               params: { cart_item: valid_attributes }, headers: valid_headers, as: :json
+          post cart_cart_items_url(cart), params: valid_attributes, headers: valid_headers, as: :json
         }.to change(CartItem, :count).by(1)
-      end
 
-      it "renders a JSON response with the new cart_item" do
-        post cart_items_url,
-             params: { cart_item: valid_attributes }, headers: valid_headers, as: :json
         expect(response).to have_http_status(:created)
-        expect(response.content_type).to match(a_string_including("application/json"))
+        expect(response).to match_response_schema("cart_item")
       end
     end
 
     context "with invalid parameters" do
-      it "does not create a new CartItem" do
-        expect {
-          post cart_items_url,
-               params: { cart_item: invalid_attributes }, as: :json
-        }.to change(CartItem, :count).by(0)
-      end
-
-      it "renders a JSON response with errors for the new cart_item" do
-        post cart_items_url,
-             params: { cart_item: invalid_attributes }, headers: valid_headers, as: :json
+      it "does not create a cart item" do
+        post cart_cart_items_url(cart), params: invalid_attributes
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to match(a_string_including("application/json"))
+        expect(response.body).to include("errors")
       end
     end
   end
 
-  describe "PATCH /update" do
+  describe "PATCH /carts/:cart_id/cart_items/:id" do
     context "with valid parameters" do
-      let(:new_attributes) {
-        skip("Add a hash of attributes valid for your model")
-      }
+      before do
+        valid_attributes[:cart_item][:quantity] = 15
+      end
 
-      it "updates the requested cart_item" do
-        cart_item = CartItem.create! valid_attributes
-        patch cart_item_url(cart_item),
-              params: { cart_item: new_attributes }, headers: valid_headers, as: :json
+      it "updates the requested cart item" do
+        valid_attributes[:cart_item][:quantity] = 15
+
+        patch cart_cart_item_url(cart, cart_item), params: valid_attributes, headers: valid_headers, as: :json
+
         cart_item.reload
-        skip("Add assertions for updated state")
+        expect(cart_item.quantity).to eq(15)
+        expect(response).to match_response_schema("cart_item")
       end
 
       it "renders a JSON response with the cart_item" do
-        cart_item = CartItem.create! valid_attributes
-        patch cart_item_url(cart_item),
-              params: { cart_item: new_attributes }, headers: valid_headers, as: :json
+        patch cart_cart_item_url(cart, cart_item), params: valid_attributes, headers: valid_headers, as: :json
+
         expect(response).to have_http_status(:ok)
         expect(response.content_type).to match(a_string_including("application/json"))
+        expect(response).to match_response_schema("cart_item")
       end
     end
 
     context "with invalid parameters" do
       it "renders a JSON response with errors for the cart_item" do
-        cart_item = CartItem.create! valid_attributes
-        patch cart_item_url(cart_item),
-              params: { cart_item: invalid_attributes }, headers: valid_headers, as: :json
+        patch cart_cart_item_url(cart, cart_item), params: invalid_attributes, headers: valid_headers, as: :json
+
         expect(response).to have_http_status(:unprocessable_entity)
         expect(response.content_type).to match(a_string_including("application/json"))
+        expect(response.body).to include("errors")
       end
-    end
-  end
-
-  describe "DELETE /destroy" do
-    it "destroys the requested cart_item" do
-      cart_item = CartItem.create! valid_attributes
-      expect {
-        delete cart_item_url(cart_item), headers: valid_headers, as: :json
-      }.to change(CartItem, :count).by(-1)
     end
   end
 end

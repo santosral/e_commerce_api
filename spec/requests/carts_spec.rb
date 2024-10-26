@@ -35,7 +35,7 @@ RSpec.describe "/carts", type: :request do
       expect(response).to have_http_status(:created)
       expect(response.content_type).to match(a_string_including("application/json"))
 
-      expect(json_response).to include('id', 'total_price', 'url')
+      expect(response).to match_response_schema('cart')
     end
   end
 end

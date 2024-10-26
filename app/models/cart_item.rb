@@ -23,23 +23,8 @@ class CartItem
     validate :quantity_must_not_exceed_product_stock
   end
 
-  def add_to_cart
-    Cart.transaction do
-      save!
-      cart.update_total_price
-      Products::TrackCartAdditionsJob.perform_async(product.id.to_s)
-      Rails.logger.info "Added product #{product.id} to cart #{cart.id}"
-    end
-
-    true
-  rescue Mongoid::Errors::Validations
-    Rails.logger.info "Validation errors: #{errors.messages}"
-
-    false
-  end
-
   def remove_from_cart
-    Cart.transaction do
+    CartItem.transaction do
       destroy!
       cart.update_total_price
       Rails.logger.info "Removed product #{product.id} from cart #{cart.id}"
@@ -53,7 +38,7 @@ class CartItem
   end
 
   def update_cart(cart_item_params)
-    Cart.transaction do
+    CartItem.transaction do
       assign_attributes(cart_item_params)
       save!
       cart.update_total_price

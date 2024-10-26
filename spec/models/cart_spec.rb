@@ -17,6 +17,51 @@ RSpec.describe Cart, type: :model do
     end
   end
 
+  describe '#add_cart_item' do
+    let(:product) { create(:product) }
+    let(:cart) { create(:cart) }
+    let(:cart_item_params) { { product_id: product.id.to_s, quantity: 1 } }
+
+    it 'saves the cart item and updates the cart total' do
+      expect(cart.add_cart_item(cart_item_params)).to be_a(CartItem)
+      expect(cart.total_price).to eq(cart_item_params[:quantity] * product.current_price.amount)
+    end
+
+    context 'when cart item is invalid' do
+      let(:cart_item_params) { { product_id: nil, quantity: 1 } }
+
+      it 'returns false' do
+        expect(cart.add_cart_item(cart_item_params)).to be false
+        expect(cart.errors.messages).to be_present
+      end
+    end
+
+    context 'when same product was added to the cart' do
+      let(:product) { create(:product) }
+      let(:cart_item) { create(:cart_item, product: product) }
+      let(:cart_item_params) { { product_id: product.id.to_s, quantity: 1 } }
+
+      it 'do not allow adding the same product to the cart' do
+        expect(cart_item.cart.add_cart_item(cart_item_params)).to be false
+        expect(cart_item.cart.errors.messages).to include(cart_item: [ { product_id: [ "has already been added to this cart" ] } ])
+      end
+    end
+
+    it 'logs the addition of the product' do
+      allow(Rails.logger).to receive(:info)
+      cart.add_cart_item(cart_item_params)
+      expect(Rails.logger).to have_received(:info).with("Added product #{product.id} to cart #{cart.id}")
+    end
+
+    it 'handles transaction failures gracefully' do
+      allow(Rails.logger).to receive(:info)
+      allow(cart).to receive(:save!).and_raise(Mongoid::Errors::Validations.new(cart))
+
+      expect(cart.add_cart_item(cart_item_params)).to be false
+      expect(Rails.logger).to have_received(:info).with("Validation errors: #{cart.errors.messages}")
+    end
+  end
+
   describe '#update_total_price' do
     context 'when cart is empty' do
       before { cart.update_total_price }
