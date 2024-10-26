@@ -1,0 +1,6 @@
+{
+  "type": "array",
+  "items": {
+    "$ref": "cart_item.json"
+  }
+}

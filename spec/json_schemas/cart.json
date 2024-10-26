@@ -1,0 +1,18 @@
+{
+  "title": "Cart",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "total_price": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri"
+    }
+  },
+  "required": ["id", "total_price", "url"],
+  "additionalProperties": false
+}

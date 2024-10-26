@@ -71,6 +71,8 @@ GEM
       minitest (>= 5.1)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
+    addressable (2.8.7)
+      public_suffix (>= 2.0.2, < 7.0)
     ast (2.4.2)
     base64 (0.2.0)
     bigdecimal (3.1.8)
@@ -125,6 +127,8 @@ GEM
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
     json (2.7.2)
+    json-schema (5.0.1)
+      addressable (~> 2.8)
     language_server-protocol (3.17.0.3)
     logger (1.6.1)
     loofah (2.22.0)
@@ -186,6 +190,7 @@ GEM
     prism (1.2.0)
     psych (5.1.2)
       stringio
+    public_suffix (6.0.1)
     puma (6.4.3)
       nio4r (~> 2.0)
     racc (1.8.1)
@@ -350,6 +355,7 @@ DEPENDENCIES
   faker (~> 3.4, >= 3.4.2)
   httparty (~> 0.22.0)
   jbuilder
+  json-schema (~> 5.0, >= 5.0.1)
   mongoid (= 9.0.2)
   mongoid-rspec
   puma (>= 5.0)

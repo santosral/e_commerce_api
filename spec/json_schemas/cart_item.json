@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "quantity": { "type": "integer" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "url": { "type": "string", "format": "uri" },
+    "product": {
+      "$ref": "product.json"
+    }
+  },
+  "required": ["id", "quantity", "created_at", "updated_at", "url", "product"]
+}

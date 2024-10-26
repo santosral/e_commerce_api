@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "quantity": { "type": "integer" },
+    "url": { "type": "string", "format": "uri" },
+    "price": {
+      "$ref": "price.json"
+    }
+  },
+  "required": ["id", "name", "quantity", "url", "price"]
+}

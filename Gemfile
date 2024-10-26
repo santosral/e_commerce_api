@@ -62,6 +62,9 @@ group :test do
 
   # Provides time travel and freezing capabilities [https://github.com/travisjeffery/timecop]
   gem "timecop", "~> 0.8.0"
+
+  # This library is intended to provide Ruby with an interface for validating JSON objects.
+  gem "json-schema", "~> 5.0", ">= 5.0.1"
 end
 
 # Use MongoDB for the database, with Mongoid as the ODM
