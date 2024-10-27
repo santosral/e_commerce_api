@@ -17,8 +17,6 @@ Rails.application.routes.draw do
   end
 
   resources :categories
-  resources :prices
-  resources :price_histories
 
   resources :carts do
     resources :cart_items
@@ -26,5 +24,9 @@ Rails.application.routes.draw do
 
   resources :orders do
     resources :order_items
+  end
+
+  namespace :prices do
+    resources :adjustment_rules
   end
 end

@@ -6,8 +6,7 @@ RSpec.describe Prices::AdjustmentRule, type: :model do
 
   describe 'fields' do
     it { is_expected.to have_field(:name).of_type(String) }
-    it { is_expected.to have_field(:add_to_cart_threshold).of_type(Integer) }
-    it { is_expected.to have_field(:order_threshold).of_type(Integer) }
+    it { is_expected.to have_field(:threshold).of_type(Hash) }
     it { is_expected.to have_field(:factor).of_type(Float) }
     it { is_expected.to have_field(:time_frame).of_type(String) }
   end
@@ -22,10 +21,8 @@ RSpec.describe Prices::AdjustmentRule, type: :model do
 
   describe 'validations' do
     it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_uniqueness_of(:name).scoped_to(:products) }
-    it { is_expected.to validate_numericality_of(:add_to_cart_threshold).greater_than_or_equal_to(0).to_allow(only_integer: true) }
-    it { is_expected.to validate_numericality_of(:order_threshold).greater_than_or_equal_to(0).to_allow(only_integer: true) }
+    it { is_expected.to validate_uniqueness_of(:name).scoped_to(:product) }
     it { is_expected.to validate_numericality_of(:factor).greater_than_or_equal_to(0.0) }
-    it { is_expected.to validate_inclusion_of(:time_frame).to_allow(Prices::AdjustmentRule::TIME_FRAMES) }
+    it { is_expected.to validate_inclusion_of(:time_frame).to_allow(Metric::TIME_FRAMES) }
   end
 end

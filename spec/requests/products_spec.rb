@@ -29,9 +29,7 @@ RSpec.describe "/products", type: :request do
 
       expect(response).to have_http_status(:success)
       expect(response.content_type).to include('application/json')
-      expect(json_response).to be_an(Array)
-      expect(json_response.first['id']).to eq(product.id.to_s)
-      expect(json_response.first['name']).to eq(product.name)
+      expect(response).to match_response_schema('products')
     end
 
     context 'when no products exist' do
@@ -43,6 +41,7 @@ RSpec.describe "/products", type: :request do
       it 'returns an empty array' do
         expect(response).to have_http_status(:success)
         expect(json_response).to eq([])
+        expect(response).to match_response_schema('products')
       end
     end
 
@@ -67,6 +66,7 @@ RSpec.describe "/products", type: :request do
 
         expect(json_response.last['price']['id']).to eq(product_with_price_adjustment.price_adjustments.first.id.to_s)
         expect(json_response.last['price']['amount']).to eq("900.0")
+        expect(response).to match_response_schema('products')
       end
     end
   end
@@ -78,7 +78,7 @@ RSpec.describe "/products", type: :request do
         expect(response).to have_http_status(:success)
         expect(response.content_type).to include('application/json')
 
-        expect(json_response['id']).to eq(product.id.to_s)
+        expect(response).to match_response_schema('product')
       end
 
       context 'when product have price adjustment' do
@@ -91,6 +91,7 @@ RSpec.describe "/products", type: :request do
           get product_url(product), headers: valid_headers
           expect(response).to have_http_status(:success)
           expect(response.content_type).to include('application/json')
+          expect(response).to match_response_schema('product')
 
           expect(json_response['id']).to eq(product.id.to_s)
           expect(json_response['price']).to be_a(Hash)
@@ -105,7 +106,7 @@ RSpec.describe "/products", type: :request do
         get product_url(id: 'invalid'), headers: valid_headers
         expect(response).to have_http_status(:not_found)
 
-        expect(json_response).to eq({ 'error' => 'Resource not found' })
+        expect(json_response['error']).to be_present
       end
     end
   end

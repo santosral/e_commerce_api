@@ -1,8 +1,9 @@
 FactoryBot.define do
   factory :order_item do
-    order { nil }
-    product { nil }
     quantity { 1 }
-    price_id { nil }
+    captured_price_id { nil }
+
+    association :order
+    association :product
   end
 end

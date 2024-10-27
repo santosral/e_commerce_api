@@ -18,7 +18,7 @@ class Cart
       end
 
       update_total_price
-      Products::TrackCartAdditionsJob.perform_async(cart_item.product.id.to_s)
+      Products::TrackMetricsJob.perform_async(cart_item.product.id.to_s, "add_to_cart_count")
       Rails.logger.info "Added product #{cart_item.product.id} to cart #{id}"
     end
 
@@ -36,7 +36,7 @@ class Cart
           captured_price = item.product.price_adjustments.where(_id: item.captured_price_id).first
           amount = captured_price&.amount || 0.0
         else
-          amount = item.product.current_price.amount
+        amount = item.product.base_price
         end
 
         item.quantity * amount

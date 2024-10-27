@@ -36,8 +36,7 @@ FactoryBot.define do
         period { "2023-10-01" }
         metrics { { "add_to_cart_count" => 100, "order_count" => 100 } }
         strategy_type { 'demand' }
-        add_to_cart_threshold { 100 }
-        order_threshold { 100 }
+        threshold { 100 }
         factor { 1.2 }
       end
 
@@ -46,7 +45,7 @@ FactoryBot.define do
           period: evaluator.period)
 
         adjustment_rule = create(:prices_adjustment_rule, name: evaluator.name,
-          strategy_type: evaluator.strategy_type, add_to_cart_threshold: evaluator.add_to_cart_threshold,
+          strategy_type: evaluator.strategy_type, threshold: evaluator.threshold,
           order_threshold: evaluator.order_threshold, factor: evaluator.factor, time_frame: evaluator.time_frame)
         product.price_adjustment_rules << adjustment_rule
       end

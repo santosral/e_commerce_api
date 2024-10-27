@@ -9,7 +9,7 @@ class Metric
     "monthly" => "%Y-%m",
     "yearly" => "%Y"
   }.freeze
-  TYPES = [ "add_to_cart_count", "order_count" ].freeze
+  TYPES = [ "add_to_cart_count", "order_count", "competitor_price" ].freeze
 
   field :time_frame, type: String
   field :period, type: String
