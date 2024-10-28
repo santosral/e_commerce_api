@@ -64,7 +64,7 @@ group :test do
   gem "ruby-lsp-rspec", require: false
 
   # Provides time travel and freezing capabilities [https://github.com/travisjeffery/timecop]
-  gem "timecop", "~> 0.8.0"
+  gem "timecop", "~> 0.9.10"
 
   # This library is intended to provide Ruby with an interface for validating JSON objects.
   gem "json-schema", "~> 5.0", ">= 5.0.1"
