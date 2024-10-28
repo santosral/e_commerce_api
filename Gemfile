@@ -35,7 +35,7 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 
   # Managing test data creation [https://github.com/thoughtbot/factory_bot_rails]
-  gem "factory_bot_rails", "~> 6.2"
+  gem "factory_bot_rails", "~> 6.4"
 
   # library for generating fake data [https://github.com/faker-ruby/faker]
   gem "faker", "~> 3.4", ">= 3.4.2"
