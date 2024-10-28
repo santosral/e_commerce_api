@@ -19,7 +19,7 @@ class CompetitorClient
     case response.code
     when 200
       Rails.logger.info "Successfully fetched competitor prices."
-      response.parsed_response
+      response
     when 400
       Rails.logger.warn "Bad request: #{response.message}"
       nil
