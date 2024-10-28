@@ -21,9 +21,9 @@ RSpec.describe "/carts", type: :request do
     { 'Accept' => 'application/json' }
   }
 
-  let(:cart) { create(:cart, :with_cart_items) }
+  let(:cart) { create(:cart) }
 
-  describe "POST /create" do
+  describe "POST /carts" do
     it "creates a new Cart" do
       expect {
         post carts_url, headers: valid_headers, as: :json
@@ -36,6 +36,28 @@ RSpec.describe "/carts", type: :request do
       expect(response.content_type).to match(a_string_including("application/json"))
 
       expect(response).to match_response_schema('cart')
+    end
+  end
+
+  describe "GET /carts/:id" do
+    context "when the cart exists" do
+      it "returns the cart" do
+        get cart_url(cart), headers: valid_headers, as: :json
+        expect(response).to have_http_status(:ok)
+        expect(response.content_type).to match(a_string_including("application/json"))
+        expect(json_response['id']).to eq(cart.id.to_s)
+        expect(json_response['total_price']).to eq(cart.total_price.formatted_amount)
+        expect(response).to match_response_schema('cart')
+      end
+    end
+
+    context "when the cart does not exist" do
+      it "returns a not found status" do
+        get cart_url(id: 'non-existent-id'), headers: valid_headers, as: :json
+        expect(response).to have_http_status(:not_found)
+        expect(response.content_type).to match(a_string_including("application/json"))
+        expect(json_response).to include("error")
+      end
     end
   end
 end

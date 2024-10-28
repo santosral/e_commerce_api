@@ -3,12 +3,22 @@ require 'rails_helper'
 RSpec.describe Cart, type: :model do
   let(:cart) { build(:cart) }
 
+  before do
+    Sidekiq::Testing.fake!
+  end
+
   it 'is a Mongoid document' do
     expect(cart).to be_mongoid_document
   end
 
   it 'has timestamps' do
     expect(cart).to have_timestamps
+  end
+
+  describe "associations" do
+    it 'has many cart items' do
+      expect(cart).to have_many(:cart_items)
+    end
   end
 
   describe 'fields' do
@@ -59,6 +69,19 @@ RSpec.describe Cart, type: :model do
 
       expect(cart.add_cart_item(cart_item_params)).to be false
       expect(Rails.logger).to have_received(:info).with("Validation errors: #{cart.errors.messages}")
+    end
+
+    it 'calls TrackTrendsJob when an item is added' do
+      expect {
+        cart.add_cart_item(cart_item_params)
+      }.to change(TrackTrendsJob.jobs, :size).by(1)
+    end
+
+    it 'calls TrackTrendsJob with the correct arguments' do
+      cart.add_cart_item(cart_item_params)
+      job = TrackTrendsJob.jobs.last
+
+      expect(job['args']).to eq([ product.id.to_s, "daily", "cart_additions_count" ])
     end
   end
 

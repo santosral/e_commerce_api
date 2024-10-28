@@ -3,6 +3,10 @@ require 'rails_helper'
 RSpec.describe Order, type: :model do
   let(:order) { build(:order) }
 
+  before do
+    Sidekiq::Testing.fake!
+  end
+
   it 'is a Mongoid document' do
     expect(order).to be_mongoid_document
   end
@@ -26,7 +30,17 @@ RSpec.describe Order, type: :model do
     let!(:cart) { create(:cart) }
     let!(:product) { create(:product, base_price: 10.0) }
     let!(:cart_item) { create(:cart_item, cart: cart, product: product, quantity: 2) }
-    let(:order_params) { { cart_id: cart.id.to_s } }
+    let(:order_params) { cart.id.to_s }
+
+    it 'queues Sidekiq jobs for tracking trends and adjusting inventory' do
+      allow(TrackTrendsJob).to receive(:perform_async)
+      allow(PriceAdjustmentJob).to receive(:perform_async)
+
+      Order.create_from_cart(order_params)
+
+      expect(TrackTrendsJob).to have_received(:perform_async).with(product.id.to_s, "daily", "orders_count")
+      expect(PriceAdjustmentJob).to have_received(:perform_async).with(product.id.to_s, "daily", "inventory")
+    end
 
     context 'when cart has items' do
       it 'creates an order and order items' do
@@ -55,7 +69,7 @@ RSpec.describe Order, type: :model do
 
     context 'when cart has no items' do
       let(:empty_cart) { create(:cart) }
-      let(:order_params) { { cart_id: empty_cart.id.to_s } }
+      let(:order_params) { empty_cart.id.to_s }
 
       it 'adds an error and does not create an order' do
         order = Order.create_from_cart(order_params)
@@ -75,6 +89,19 @@ RSpec.describe Order, type: :model do
 
         expect(order.errors[:order_items]).to be_present
         expect(order).not_to be_persisted
+      end
+    end
+
+    context 'when a Mongoid::Errors::Validations exception is raised' do
+      before do
+        allow_any_instance_of(OrderItem).to receive(:valid?).and_return(false)
+      end
+
+      it 'logs validation errors' do
+        expect(Rails.logger).to receive(:info).with(/Invalid/)
+        expect(Rails.logger).to receive(:info).with(/Validation errors:/)
+
+        Order.create_from_cart(order_params)
       end
     end
   end

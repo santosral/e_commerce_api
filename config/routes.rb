@@ -19,6 +19,7 @@ Rails.application.routes.draw do
     end
 
     resources :trends, only: :index
+    resources :prices, only: :index
   end
 
   resources :categories

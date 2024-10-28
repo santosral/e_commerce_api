@@ -55,7 +55,7 @@ RSpec.describe "/orders", type: :request do
     end
   end
 
-  describe "POST /create" do
+  describe "POST /orders" do
     context "with valid parameters" do
       it "creates a new Order" do
         expect {
