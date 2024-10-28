@@ -62,11 +62,9 @@ jobs:
         image: mongodb/mongodb-community-server:7.0.12-ubuntu2204
         ports:
           - 27017:27017
-        options: --replSet rs0 --bind_ip_all
+        command: ["mongod", "--replSet", "rs0"]
       mongo-setup:
         image: mongodb/mongodb-community-server:7.0.12-ubuntu2204
-        volumes:
-          - ./init-mongo.sh:/init-mongo.sh
       redis:
         image: redis/redis-stack:7.4.0-v1
         ports:
@@ -84,11 +82,16 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+
       - name: Wait for MongoDB to be ready
         run: |
           for i in {1..10}; do
             mongo --host mongodb --eval "print(\"waited for connection\")" && break || sleep 5
           done
+      
+      - name: Initialize MongoDB replica set
+        run: |
+          mongosh --host mongodb:27017 --eval "rs.initiate({ _id: "rs0", members: [ { _id: 0, host: "localhost:27017" } ]})"
 
       - name: Run tests
         env:
