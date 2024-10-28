@@ -67,8 +67,6 @@ jobs:
         image: mongodb/mongodb-community-server:7.0.12-ubuntu2204
         volumes:
           - ./init-mongo.sh:/init-mongo.sh
-        depends_on:
-          - mongodb
         entrypoint: ["/bin/bash", "/init-mongo.sh"]
       redis:
         image: redis/redis-stack:7.4.0-v1
