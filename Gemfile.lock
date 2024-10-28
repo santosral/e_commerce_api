@@ -321,8 +321,7 @@ GEM
     ruby-progressbar (1.13.0)
     rubyzip (2.3.2)
     securerandom (0.3.1)
-    sidekiq (7.3.2)
-      concurrent-ruby (< 2)
+    sidekiq (7.3.4)
       connection_pool (>= 2.3.0)
       logger
       rack (>= 2.2.4)
@@ -378,7 +377,7 @@ DEPENDENCIES
   rspec-sidekiq (~> 3.1)
   rubocop-rails-omakase
   ruby-lsp-rspec
-  sidekiq (~> 7.1, >= 7.1.2)
+  sidekiq (~> 7.3)
   sidekiq-cron (~> 1.12)
   timecop (~> 0.8.0)
   tzinfo-data
