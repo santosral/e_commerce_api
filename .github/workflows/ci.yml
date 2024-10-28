@@ -62,6 +62,11 @@ jobs:
         image: mongodb/mongodb-community-server:7.0.12-ubuntu2204
         ports:
           - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
       redis:
         image: redis/redis-stack:7.4.0-v1
         ports:
@@ -84,16 +89,10 @@ jobs:
 
       - name: Start mongo
         run: docker run --rm -d -p 27017:27017 --name mongodb mongodb/mongodb-community-server:7.0.12-ubuntu2204 --replSet test
-
-      - name: Wait for MongoDB to be ready
-        run: |
-          until mongosh --host mongodb:27017 --eval 'db.runCommand({ ping: 1 })'; do
-            echo "Waiting for MongoDB to be ready..."
-            sleep 2
-          done
       
       - name: Initialize MongoDB replica set
         run: |
+          sleep 5
           docker run --rm mongodb/mongodb-community-server:7.0.12-ubuntu2204 mongosh --host mongodb:27017 --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "localhost:27017"}]})'
 
       - name: Run tests
