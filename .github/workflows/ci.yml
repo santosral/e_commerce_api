@@ -94,9 +94,6 @@ jobs:
             echo "Waiting for MongoDB to be ready..."
             sleep 2
           done
-
-      - name: Running MongoDB as replica set
-        run: mongod --replSet rs0
       
       - name: Initialize MongoDB replica set
         run: |
