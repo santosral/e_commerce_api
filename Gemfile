@@ -58,7 +58,7 @@ group :test do
   gem "mongoid-rspec"
 
   # Simple testing of Sidekiq jobs via a collection of matchers and helpers [https://github.com/wspurgin/rspec-sidekiq]
-  gem "rspec-sidekiq", "~> 3.1"
+  gem "rspec-sidekiq", "~> 5.0"
 
   # Addon for displaying CodeLens for RSpec tests
   gem "ruby-lsp-rspec", require: false
