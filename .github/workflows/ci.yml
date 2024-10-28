@@ -79,12 +79,12 @@ jobs:
           bundler-cache: true
 
       - name: Start mongo
-        run: docker run --rm -d -p 27017:27017 --name mongodb mongodb/mongodb-community-server:7.0.12-ubuntu2204 --replSet test
+        run: docker run --rm -d -p 27017:27017 --name mongodb mongodb/mongodb-community-server:7.0.12-ubuntu2204 --replSet rs0
       
       - name: Initialize MongoDB replica set
         run: |
           sleep 5
-          docker run --rm mongodb/mongodb-community-server:7.0.12-ubuntu2204 mongosh --host localhost:27017 --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "localhost:27017"}]})'
+          docker run --rm mongodb/mongodb-community-server:7.0.12-ubuntu2204 mongosh --host 172.18.0.1:27017 --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "172.18.0.1:27017"}]})'
 
       - name: Run tests
         env:
