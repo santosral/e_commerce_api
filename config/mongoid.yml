@@ -294,6 +294,7 @@ test:
       hosts:
         - localhost:27017
       options:
+        replica_set: rs0
         read:
           mode: :primary
         max_pool_size: 1

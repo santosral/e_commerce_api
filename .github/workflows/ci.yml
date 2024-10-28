@@ -71,12 +71,6 @@ jobs:
       - name: Install packages
         run: |
           sudo apt-get update && sudo apt-get install --no-install-recommends -y curl libjemalloc2
-          sudo apt-get install gnupg
-          wget -qO- https://www.mongodb.org/static/pgp/server-8.0.asc | sudo tee /etc/apt/trusted.gpg.d/server-8.0.asc
-          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
-          sudo apt-get update
-          sudo apt-get install -y mongodb-mongosh
-          mongosh --version
 
 
       - name: Checkout code
@@ -88,16 +82,19 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Start mongo
+        run: docker run --rm -d -p 27017:27017 --name mongodb mongodb/mongodb-community-server:7.0.12-ubuntu2204 --replSet test
+
       - name: Wait for MongoDB to be ready
         run: |
-          until mongosh --host localhost:27017 --eval 'db.runCommand({ ping: 1 })'; do
+          until mongosh --host mongodb:27017 --eval 'db.runCommand({ ping: 1 })'; do
             echo "Waiting for MongoDB to be ready..."
             sleep 2
           done
       
       - name: Initialize MongoDB replica set
         run: |
-          mongosh --host localhost:27017 --eval "rs.initiate({ _id: 'rs0', members: [ { _id: 0, host: 'localhost:27017' } ]})"
+          docker run --rm mongodb/mongodb-community-server:7.0.12-ubuntu2204 mongosh --host mongodb:27017 --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "localhost:27017"}]})'
 
       - name: Run tests
         env:
