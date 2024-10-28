@@ -16,7 +16,7 @@ RSpec.describe PriceAdjustmentService do
     end
 
     context 'when a rule exists' do
-      let!(:rule) { create(:prices_adjustment_rule, product: [ product ], time_frame: time_frame, strategy_type: strategy_type, factor: 1.2, threshold: 5) }
+      let!(:rule) { create(:prices_adjustment_rule, products: [ product ], time_frame: time_frame, strategy_type: strategy_type, factor: 1.2, threshold: 5) }
       let!(:trend) { create(:trend, product: product, cart_additions_count: 6, orders_count: 2) }
 
       it 'applies the price adjustment successfully' do

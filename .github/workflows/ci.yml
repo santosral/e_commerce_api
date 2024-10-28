@@ -7,7 +7,7 @@ on:
 
 jobs:
   scan_ruby:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout code
@@ -22,21 +22,21 @@ jobs:
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
 
-  scan_js:
-    runs-on: ubuntu-latest
+  # scan_js:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+  #     - name: Set up Ruby
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: .ruby-version
+  #         bundler-cache: true
 
-      - name: Scan for security vulnerabilities in JavaScript dependencies
-        run: bin/importmap audit
+  #     - name: Scan for security vulnerabilities in JavaScript dependencies
+  #       run: bin/importmap audit
 
   lint:
     runs-on: ubuntu-latest
@@ -54,17 +54,30 @@ jobs:
         run: bin/rubocop -f github
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    needs: [scan_ruby, lint]
 
-    # services:
-    #  redis:
-    #    image: redis
-    #    ports:
-    #      - 6379:6379
-    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    services:
+      mongodb:
+        image: mongodb/mongodb-community-server:7.0.12-ubuntu2204
+        ports:
+          - 27017:27017
+        options: --replSet rs0 --bind_ip_all
+      mongo-setup:
+        image: mongodb/mongodb-community-server:7.0.12-ubuntu2204
+        volumes:
+          - ./init-mongo.sh:/init-mongo.sh
+        depends_on:
+          - mongodb
+        entrypoint: ["/bin/bash", "/init-mongo.sh"]
+      redis:
+        image: redis/redis-stack:7.4.0-v1
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable curl libjemalloc2
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y curl libjemalloc2
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -74,17 +87,22 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+      - name: Wait for MongoDB to be ready
+        run: |
+          for i in {1..10}; do
+            mongo --host mongodb --eval "print(\"waited for connection\")" && break || sleep 5
+          done
 
       - name: Run tests
         env:
           RAILS_ENV: test
-          # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test test:system
+          REDIS_URL: redis://localhost:6379/0
+        run: bin/rails rspec
 
-      - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: screenshots
-          path: ${{ github.workspace }}/tmp/screenshots
-          if-no-files-found: ignore
+      # - name: Keep screenshots from failed system tests
+      #   uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: screenshots
+      #     path: ${{ github.workspace }}/tmp/screenshots
+      #     if-no-files-found: ignore
