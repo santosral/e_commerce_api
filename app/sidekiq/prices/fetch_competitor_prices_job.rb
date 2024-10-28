@@ -6,7 +6,7 @@ module Prices
     include Sidekiq::Job
 
     def perform(args)
-      competitor_prices = CompetitorClient.fetch_prices
+      competitor_prices = HttpClients::CompetitorClient.fetch_prices
       return unless competitor_prices
 
       adjustment_rule = Prices::AdjustmentRule.find(args["id"])
