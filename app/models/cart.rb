@@ -18,7 +18,7 @@ class Cart
       end
 
       update_total_price
-      Products::TrackMetricsJob.perform_async(cart_item.product.id.to_s, "add_to_cart_count")
+      TrackTrendsJob.perform_async(cart_item.product.id.to_s, "daily", "cart_additions_count")
       Rails.logger.info "Added product #{cart_item.product.id} to cart #{id}"
     end
 

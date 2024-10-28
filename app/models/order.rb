@@ -31,11 +31,12 @@ class Order
 
         if order_item.valid?(:create_from_cart)
           order_item.save!
+
           product_id = order_item.product.id.to_s
-          Products::TrackMetricsJob.perform_async(product_id, "order_count")
+          TrackTrendsJob.perform_async(product_id, "daily", "orders_count")
 
           order_item.product.reduce_quantity(order_item.quantity)
-          Products::ApplyPriceAdjustmentRuleJob.perform_async(product_id, "inventory")
+          PriceAdjustmentJob.perform_async(product_id, "daily", "inventory")
         else
           order.errors.add(:order_items, message: order_item.errors.full_messages.first)
           Rails.logger.info "Invalid order item for cart #{cart.id}: #{order.errors.messages}"

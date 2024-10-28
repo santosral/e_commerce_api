@@ -22,8 +22,10 @@ module Prices
     validates :strategy_type, inclusion: { in: STRATEGY_TYPES, message: "must be one of #{STRATEGY_TYPES.join(', ')}" }
     validates :strategy_type, uniqueness: { scope: :products, message: "must be unique per product" }
     validates :factor, numericality: { greater_than_or_equal_to: 0.0, message: "must be a positive number or zero" }
-    validates :time_frame, inclusion: { in: Metric::TIME_FRAMES, message: "must be either #{Metric::TIME_FRAMES.join(', ')}" }
+    validates :time_frame, inclusion: { in: TimeFrame::TIME_FRAMES, message: "must be either #{TimeFrame::TIME_FRAMES.join(', ')}" }
+    validates :time_frame, uniqueness: { scope: :products, message: "must be unique per product" }
     validates :competitor_rule, inclusion: { in: COMPETITOR_PRICING_RULES, message: "must be either #{COMPETITOR_PRICING_RULES.join(', ')}" }, if: -> { strategy_type == "competitor" }
+    validates :competitor_rule, uniqueness: { scope: :products, message: "must be unique per product" }
 
     def can_apply_adjustment?(current_period)
       rule_period = Time.now.utc.strftime(Metric::TIME_FRAME_FORMATS[time_frame])

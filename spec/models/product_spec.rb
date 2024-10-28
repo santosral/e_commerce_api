@@ -43,10 +43,6 @@ RSpec.describe Product, type: :model do
       expect(product).to have_many(:order_items)
     end
 
-    it 'has many metrics' do
-      expect(product).to have_many(:metrics)
-    end
-
     it 'has and belongs to many price adjustment rules of type Prices::AdjustmentRule' do
       expect(product).to have_and_belong_to_many(:price_adjustment_rules).of_type(Prices::AdjustmentRule)
     end
@@ -112,92 +108,6 @@ RSpec.describe Product, type: :model do
 
       it 'returns the latest price adjustment' do
         expect(product.current_price.amount).to eq(BigDecimal("900.00"))
-      end
-    end
-  end
-
-  describe '#increase_cart_metrics' do
-    let(:product) { create(:product) }
-
-    before do
-      product.increase_cart_metrics
-    end
-
-    it 'increments order_count for all time frames' do
-      Metric::TIME_FRAME_FORMATS.keys.each do |time_frame|
-        metric = product.metrics.find_by(time_frame: time_frame)
-        expect(metric.metrics['add_to_cart_count']).to eq(1)
-      end
-    end
-  end
-
-  describe '#increase_order_metrics' do
-    let(:product) { create(:product) }
-
-    before do
-      product.increase_order_metrics
-    end
-
-    it 'increments order_count for all time frames' do
-      Metric::TIME_FRAME_FORMATS.keys.each do |time_frame|
-        metric = product.metrics.find_by(time_frame: time_frame)
-        expect(metric.metrics['order_count']).to eq(1)
-      end
-    end
-  end
-
-  describe '#apply_price_adjustment_rules_by_demand' do
-    let(:product) do
-      create(:product, :with_demand_adjustments, base_price: 100.00,
-        period: Time.now.utc.strftime(Metric::TIME_FRAME_FORMATS['daily']))
-    end
-
-    before do
-      Timecop.freeze(Time.now)
-      product.apply_price_adjustment_rules_by_demand
-    end
-
-    after do
-      Timecop.return
-    end
-
-    it 'applies price adjustment rules based on demand' do
-      expect(product.price_adjustments.count).to eq(1)
-      expect(product.price_adjustments.last.amount.to_i).to be > 100.00
-    end
-
-    context 'when no rules are present' do
-      before { product.price_adjustment_rules.clear }
-
-      it 'does not apply adjustment' do
-        expect { product.apply_price_adjustment_rules_by_demand }.not_to change { product.price_adjustments.count }
-      end
-    end
-
-    context 'when demand threshold is not met' do
-      before { product.metrics.first.update(metrics: { add_to_cart_count: 4 }) }
-
-      it 'does not apply adjustment' do
-        expect { product.apply_price_adjustment_rules_by_demand }.not_to change { product.price_adjustments.count }
-      end
-    end
-
-    context 'when no valid metrics exist' do
-      before { product.metrics.destroy_all }
-
-      it 'does not apply adjustment' do
-        expect { product.apply_price_adjustment_rules_by_demand }.not_to change { product.price_adjustments.count }
-      end
-    end
-
-    context 'when adjustment has already been applied' do
-      before do
-        product.metrics.first.update(metrics: { add_to_cart_count: 6 })
-        product.apply_price_adjustment_rules_by_demand
-      end
-
-      it 'does not apply adjustment multiple times under the same conditions' do
-        expect { product.apply_price_adjustment_rules_by_demand }.not_to change { product.price_adjustments.count }
       end
     end
   end

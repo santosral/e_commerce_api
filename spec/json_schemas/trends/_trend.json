@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "cart_additions_count": {
+      "type": "integer"
+    },
+    "orders_count": {
+      "type": "integer"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "cart_additions_count", "orders_count", "recorded_at", "created_at", "updated_at"]
+}

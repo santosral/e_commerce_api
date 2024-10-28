@@ -5,10 +5,9 @@ class Price
   PRICING_STRATEGIES  = [ "cart_demand", "order_demand", "inventory", "competitor" ].freeze
 
   field :pricing_strategy, type: String
-  field :adjustment_rule_period, type: String
+  field :adjustment_rule_time_frame, type: String
   field :amount, type: BigDecimal
-
-  field :effective_date, type: DateTime, default: nil
+  field :effective_date, type: DateTime, default: Time.zone.now
 
   index({ effective_date: 1 })
 

@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :price do
     pricing_strategy { Price::PRICING_STRATEGIES.sample }
     amount { Faker::Commerce.price(range: 0..100.0) }
-    effective_date { DateTime.now.utc }
+    effective_date { Time.zone.now }
 
     trait :with_demand_strategy do
       pricing_strategy { "demand" }

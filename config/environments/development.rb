@@ -66,6 +66,6 @@ Rails.application.configure do
 
   # Skip generating routing specs
   config.generators do |g|
-    g.skip_routes true
+    g.test_framework :rspec, routing_specs: false
   end
 end

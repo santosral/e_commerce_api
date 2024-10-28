@@ -20,30 +20,16 @@ FactoryBot.define do
       end
     end
 
-    trait :with_metrics do
-      transient do
-        metrics_count { 1 }
-      end
-
-      after(:create) do |product, evaluator|
-        create_list(:metric, evaluator.metrics_count, product: product)
-      end
-    end
-
     trait :with_demand_adjustments do
       transient do
         time_frame { 'daily' }
         period { "2023-10-01" }
-        metrics { { "add_to_cart_count" => 100, "order_count" => 100 } }
         strategy_type { 'demand' }
         threshold { 100 }
         factor { 1.2 }
       end
 
       after(:create) do |product, evaluator|
-        create(:metric, product: product, time_frame: evaluator.time_frame, metrics: evaluator.metrics,
-          period: evaluator.period)
-
         adjustment_rule = create(:prices_adjustment_rule, name: evaluator.name,
           strategy_type: evaluator.strategy_type, threshold: evaluator.threshold,
           order_threshold: evaluator.order_threshold, factor: evaluator.factor, time_frame: evaluator.time_frame)

@@ -46,6 +46,9 @@ group :development, :test do
   # Test framework [https://github.com/rspec]
   gem "rspec", "~> 3.4"
   gem "rspec-rails", "~> 7.0", ">= 7.0.1"
+
+  # The Rails CLI tool for MongoDB
+  gem "railsmdb", "1.0.0.alpha3"
 end
 
 group :test do
@@ -70,11 +73,11 @@ end
 # Use MongoDB for the database, with Mongoid as the ODM
 gem "mongoid", "9.0.2"
 
-# The Rails CLI tool for MongoDB
-gem "railsmdb", "1.0.0.alpha3"
-
 # For background job processing [https://github.com/sidekiq/sidekiq]
 gem "sidekiq", "~> 7.1", ">= 7.1.2"
 
 # A library that simplifies making HTTP requests
 gem "httparty", "~> 0.22.0"
+
+# Schedule jobs at specified times
+gem "sidekiq-cron", "~> 1.12"
