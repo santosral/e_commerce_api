@@ -45,7 +45,7 @@ group :development, :test do
 
   # Test framework [https://github.com/rspec]
   gem "rspec", "~> 3.4"
-  gem "rspec-rails", "~> 7.0", ">= 7.0.1"
+  gem "rspec-rails", "~> 7.1"
 
   # The Rails CLI tool for MongoDB
   gem "railsmdb", "1.0.0.alpha3"
