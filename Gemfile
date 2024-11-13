@@ -71,7 +71,7 @@ group :test do
 end
 
 # Use MongoDB for the database, with Mongoid as the ODM
-gem "mongoid", "9.0.2"
+gem "mongoid", "9.0.3"
 
 # For background job processing [https://github.com/sidekiq/sidekiq]
 gem "sidekiq", "~> 7.3"
