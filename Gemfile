@@ -80,4 +80,4 @@ gem "sidekiq", "~> 7.3"
 gem "httparty", "~> 0.22.0"
 
 # Schedule jobs at specified times
-gem "sidekiq-cron", "~> 1.12"
+gem "sidekiq-cron", "~> 2.0"
