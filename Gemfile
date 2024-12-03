@@ -67,7 +67,7 @@ group :test do
   gem "timecop", "~> 0.9.10"
 
   # This library is intended to provide Ruby with an interface for validating JSON objects.
-  gem "json-schema", "~> 5.0", ">= 5.0.1"
+  gem "json-schema", "~> 5.1"
 end
 
 # Use MongoDB for the database, with Mongoid as the ODM
