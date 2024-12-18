@@ -41,7 +41,7 @@ group :development, :test do
   gem "faker", "~> 3.4", ">= 3.4.2"
 
   # ENV variable manager [https://github.com/bkeepers/dotenv]
-  gem "dotenv", "~> 3.1", ">= 3.1.4"
+  gem "dotenv", "~> 3.1"
 
   # Test framework [https://github.com/rspec]
   gem "rspec", "~> 3.4"
